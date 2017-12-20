@@ -1,0 +1,77 @@
+name: {{SERVICE_NAME}}
+pods:
+  locator:
+    count: {{LOCATOR_COUNT}}
+    image: {{LOCATOR_DOCKER_IMAGE}}
+    placement: '{{{LOCATOR_PLACEMENT}}}'
+    allow-decommission: true
+    tasks:
+      locator:
+        goal: RUNNING
+        cmd: "echo Locator ${TASK_NAME} started && gfsh start locator --name ${TASK_NAME} --locators=locator-0-locator.${FRAMEWORK_HOST}[10334],locator-1-locator.${FRAMEWORK_HOST}[10334],locator-2-locator.${FRAMEWORK_HOST}[10334],locator-3-locator.${FRAMEWORK_HOST}[10334],locator-4-locator.${FRAMEWORK_HOST}[10334],locator-5-locator.${FRAMEWORK_HOST}[10334],locator-6-locator.${FRAMEWORK_HOST}[10334],locator-7-locator.${FRAMEWORK_HOST}[10334] && tail -f /dev/null"
+        cpus: {{LOCATOR_CPUS}}
+        memory: {{LOCATOR_MEM}}
+        ports:
+            http:
+                port: 10334
+                advertise: true
+        volume:
+          path: "locator-container-path"
+          type: {{LOCATOR_DISK_TYPE}}
+          size: {{LOCATOR_DISK}}
+  server:
+    count: {{SERVER_COUNT}}
+    image: {{SERVER_DOCKER_IMAGE}}
+    placement: '{{{SERVER_PLACEMENT}}}'
+    allow-decommission: true
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo Server ${TASK_NAME} started && gfsh start server --server-port=10335 --start-rest-api=true --http-service-port=10336 --name ${TASK_NAME} --locators=locator-0-locator.${FRAMEWORK_HOST}[10334],locator-1-locator.${FRAMEWORK_HOST}[10334],locator-2-locator.${FRAMEWORK_HOST}[10334],locator-3-locator.${FRAMEWORK_HOST}[10334],locator-4-locator.${FRAMEWORK_HOST}[10334],locator-5-locator.${FRAMEWORK_HOST}[10334],locator-6-locator.${FRAMEWORK_HOST}[10334],locator-7-locator.${FRAMEWORK_HOST}[10334] && tail -f /dev/null"
+        cpus: {{SERVER_CPU}}
+        memory: {{SERVER_MEM}}
+        ports:
+            server:
+                port: 10335
+                advertise: false
+                vip:
+                    prefix: server-lb
+                    port: 80
+            rest:
+                port: 10336
+                advertise: false
+        volume:
+          path: "server-container-path"
+          type: {{SERVER_DISK_TYPE}}
+          size: {{SERVER_DISK}}
+  pulse:
+    count: 1
+    image: {{PULSE_DOCKER_IMAGE}}
+    allow-decommission: true
+    pre-reserved-role: {{PULSE_ROLE}}
+    tasks:
+      pulse:
+        goal: RUNNING
+        cmd: "echo Pulse ${TASK_NAME} started && /opt/starttomcat.sh"
+        cpus: {{PULSE_CPU}}
+        memory: {{PULSE_MEM}}
+        env:
+          pulse_port: {{PULSE_PORT}}
+          pulse_shutdownport: {{PULSE_SHUTDOWNPORT}}
+        ports:
+            http:
+                port: {{PULSE_PORT}}
+                advertise: false
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      locator-phase:
+        strategy: serial
+        pod: locator
+      server-phase:
+        strategy: serial
+        pod: server
+      pulse-phase:
+        strategy: serial
+        pod: pulse

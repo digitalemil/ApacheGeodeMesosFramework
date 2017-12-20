@@ -1,0 +1,15 @@
+{
+  "packagingVersion": "4.0",
+  "upgradesFrom": ["{{upgrades-from}}"],
+  "downgradesTo": ["{{downgrades-to}}"],
+  "minDcosReleaseVersion": "1.9",
+  "name": "ApacheGeode",
+  "version": "{{package-version}}",
+  "maintainer": "me@digitalemil.de",
+  "description": "Apache Geode on DC/OS",
+  "selected": false,
+  "framework": true,
+  "tags": ["geode"],
+  "postInstallNotes": "DC/OS Apache Geode is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
+  "postUninstallNotes": "DC/OS Apache Geode is being uninstalled."
+}

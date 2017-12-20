@@ -1,0 +1,4 @@
+PACKAGE_NAME = 'geode'
+SERVICE_NAME = 'geode'
+DEFAULT_TASK_COUNT = 1
+
